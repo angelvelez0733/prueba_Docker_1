@@ -19,9 +19,25 @@ services:
       oprions:
         max-size: "10m"
         max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+# Agregamos el servicio de Mysql
+mysql:
+  image: mysql:8.0
+  container_name: mysql-db
+  restart: unless-stopped
+  environment:
+    MYSQL_ROOT_PASSWORD: Sigvpf123*
+    MYSQL_DATABASE: prueba_docker
+    MYSQL_USER: root
+    MYSQL_PASSWORD: Sigvpf123*
+  ports:
+    - "3306:3306"
+  volumes:
+    - mysql-data:/var/lib/mysql
+  networks:
+    - mysql_network
+volumes:
+  mysql_data:
+
+networks:
+  mysql_network:
+    driver: bridge

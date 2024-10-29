@@ -1,17 +1,9 @@
-# !bin/bash
+#!bin/bash
 
-#Establecer el modo estricto de bash
+# Establecer el modo estricto de bash
 set -euo pipefail
 
 echo "Iniciando configuración del firewall..."
-
-# Función para manejar errores
-handle_error() {
-    echo "Error en la línea $1"
-    exit 1
-}
-
-trap 'handle_error $LINENO' ERR
 
 # limpiar reglas anteriores
 iptables -F
@@ -32,8 +24,9 @@ iptables -A INPUT -i lo -j ACCEPT
 echo "Permitiendo conexiones establecidas..."
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# Permitir ping 
-iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+# Permitir Mysql
+echo "Permitiendo acceso a MYSQL"
+iptables -A INPUT -p tcp --dport 3306 -j ACCEPT
 
 # Permitir purtos específicos 
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT # SSH
