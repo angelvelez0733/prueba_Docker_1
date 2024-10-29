@@ -1,0 +1,27 @@
+#Docker-compose.yml
+version: "3.8"
+
+services:
+  firewall:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: firewall
+    privileged: true # Requerido para iptables
+    network_mode: "host" # Usa el modo de red del host
+    restart: unless-stopped # Reiniciar autpmáticamente si falla
+    volumes:
+      - /var/log/iptables:/var/logs/iptables #para logs persistentes
+    environment:
+      - TZ=UTC # Zona horaria para logs
+    logging:
+      driver: "json-file"
+      oprions:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
