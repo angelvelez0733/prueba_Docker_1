@@ -1,5 +1,5 @@
 # DockerFile
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Establecer variables de entorno para evitar interacciones durante la instalación
 ENV DEBIAN_FRONTEND=noninteractive

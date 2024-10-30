@@ -1,4 +1,3 @@
-#Docker-compose.yml
 version: "3.8"
 
 services:
@@ -9,35 +8,19 @@ services:
     container_name: firewall
     privileged: true # Requerido para iptables
     network_mode: "host" # Usa el modo de red del host
-    restart: unless-stopped # Reiniciar autpmáticamente si falla
+    restart: unless-stopped # Reinicia automáticamente si falla
     volumes:
-      - /var/log/iptables:/var/logs/iptables #para logs persistentes
+      - /var/log/iptables:/var/log/iptables # Para logs persistentes
     environment:
-      - TZ=UTC # Zona horaria para logs
+      - TZ=UTC # Zona horaria para los logs
     logging:
       driver: "json-file"
-      oprions:
+      options:
         max-size: "10m"
         max-file: "3"
-# Agregamos el servicio de Mysql
-mysql:
-  image: mysql:8.0
-  container_name: mysql-db
-  restart: unless-stopped
-  environment:
-    MYSQL_ROOT_PASSWORD: Sigvpf123*
-    MYSQL_DATABASE: prueba_docker
-    MYSQL_USER: root
-    MYSQL_PASSWORD: Sigvpf123*
-  ports:
-    - "3306:3306"
-  volumes:
-    - mysql-data:/var/lib/mysql
-  networks:
-    - mysql_network
-volumes:
-  mysql_data:
-
-networks:
-  mysql_network:
-    driver: bridge
+      deploy:
+        reosurces:
+          limits:
+            memory: 256M
+          reservations:
+            memory: 128M
