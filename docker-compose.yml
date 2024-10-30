@@ -7,6 +7,9 @@ services:
     privileged: true # Requerido para iptables
     network_mode: "host" # Usa el modo de red del host
     restart: unless-stopped # Reinicia automáticamente si falla
+    ports:
+      - "8080:80" #  Mapea el puerto 80 del contenedor a 8080 del host
+      - "8443:443" # Mapea el puerto 443 del contenedor 8443 del host
     volumes:
       - /var/log/iptables:/var/log/iptables # Para logs persistentes
     environment:
