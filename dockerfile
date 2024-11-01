@@ -1,26 +1,43 @@
-# DockerFile
-FROM ubuntu:22.04
+# DockerFile para FreeIPA con Rocky Linux y configuración de firewall
+FROM rockylinux:9
 
-# Establecer variables de entorno para evitar interacciones durante la instalación
-ENV DEBIAN_FRONTEND=noninteractive
+# Establecer variables de entorno
+ENV container=docker
 
-## Instalar iptables y otras dependencias
-RUN apt-get update && apt-get install -y \
+# Instalar FreeIPA, herramientas de red y firewall
+RUN dnf -y update && \
+    dnf -y install \
+    freeipa-server \
+    freeipa-server-dns \
+    freeipa-server-trust \
     iptables \
-    iproute2 \
-    net-tools && \
-    apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    iptables-services \
+    net-tools \
+    && dnf clean all
 
-## Copiar el script de configuración
+# Copiar script de configuración de firewall
 COPY firewall.sh /usr/local/bin/firewall.sh
 
 # Hacer el script ejecutable
 RUN chmod +x /usr/local/bin/firewall.sh
 
-## HealthCheck para verificar que el firewall está funcionando
+# Preparar para systemd
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
+systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*;\
+rm -f /etc/systemd/system/*.wants/*;\
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;\
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+# Configuración de volúmenes para persistencia
+VOLUME [ "/sys/fs/cgroup", "/storage" ]
+
+# HealthCheck para verificar el firewall
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD iptables -L > /dev/null || exit 1
 
-# Comando para ejecutar el el script al iniciar el contenedor
-CMD ["bash", "/usr/local/bin/firewall.sh"]
+# Comando de inicio combinado
+CMD ["/bin/bash", "-c", "/usr/local/bin/firewall.sh & /usr/sbin/init"]
