@@ -1,8 +1,10 @@
-# DockerFile para FreeIPA con Rocky Linux y configuración de firewall
+# Dockerfile para FreeIPA con configuración de firewall
 FROM rockylinux:9
 
 # Establecer variables de entorno
 ENV container=docker
+ENV IPA_SERVER_IP=${IPA_SERVER_IP:-192.168.211.194}
+ENV PASSWORD=${PASSWORD:-Angel123*}
 
 # Instalar FreeIPA, herramientas de red y firewall
 RUN dnf -y update && \
@@ -15,11 +17,13 @@ RUN dnf -y update && \
     net-tools \
     && dnf clean all
 
-# Copiar script de configuración de firewall
+# Copiar scripts de configuración
 COPY firewall.sh /usr/local/bin/firewall.sh
+COPY install-freeipa.sh /usr/local/bin/install-freeipa.sh
 
-# Hacer el script ejecutable
-RUN chmod +x /usr/local/bin/firewall.sh
+# Hacer scripts ejecutables
+RUN chmod +x /usr/local/bin/firewall.sh \
+    && chmod +x /usr/local/bin/install-freeipa.sh
 
 # Preparar para systemd
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
@@ -32,12 +36,12 @@ rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
 rm -f /lib/systemd/system/basic.target.wants/*;\
 rm -f /lib/systemd/system/anaconda.target.wants/*;
 
-# Configuración de volúmenes para persistencia
+# Volúmenes para persistencia
 VOLUME [ "/sys/fs/cgroup", "/storage" ]
 
-# HealthCheck para verificar el firewall
+# HealthCheck para firewall
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD iptables -L > /dev/null || exit 1
 
 # Comando de inicio combinado
-CMD ["/bin/bash", "-c", "/usr/local/bin/firewall.sh & /usr/sbin/init"]
+CMD ["/bin/bash", "-c", "/usr/local/bin/firewall.sh & /usr/local/bin/install-freeipa.sh"]
